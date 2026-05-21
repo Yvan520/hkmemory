@@ -521,11 +521,9 @@ ul {
 
 /* Stats Bar */
 .stats-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+  margin: -3rem auto 0;
   width: fit-content;
   display: flex;
   align-items: center;
@@ -534,8 +532,7 @@ ul {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px);
   border: 1px solid var(--border-light);
-  border-radius: 20px 20px 0 0;
-  z-index: 2;
+  border-radius: 20px;
 }
 
 .stat-item {
@@ -1782,15 +1779,12 @@ ul {
 
   .stats-bar {
     flex-wrap: wrap;
+    margin: -2rem auto 0;
     padding: 1rem 1.5rem;
     gap: 1rem;
     width: calc(100% - 2rem);
-    left: 1rem;
-    right: 1rem;
-    margin: 0;
-    bottom: 0;
     justify-content: center;
-    border-radius: 16px 16px 0 0;
+    border-radius: 16px;
   }
 
   .stat-item {
@@ -1947,12 +1941,11 @@ ul {
   }
 
   .stats-bar {
+    margin: -2rem auto 0;
     padding: 0.75rem 1rem;
     gap: 0.5rem;
     width: calc(100% - 1.5rem);
-    left: 0.75rem;
-    right: 0.75rem;
-    border-radius: 12px 12px 0 0;
+    border-radius: 12px;
   }
 
   .stat-number {
