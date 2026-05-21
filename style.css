@@ -522,7 +522,7 @@ ul {
 /* Stats Bar */
 .stats-bar {
   position: absolute;
-  bottom: 1rem;
+  bottom: 0;
   left: 0;
   right: 0;
   margin: 0 auto;
@@ -534,7 +534,7 @@ ul {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px);
   border: 1px solid var(--border-light);
-  border-radius: 20px;
+  border-radius: 20px 20px 0 0;
   z-index: 2;
 }
 
@@ -1788,9 +1788,9 @@ ul {
     left: 1rem;
     right: 1rem;
     margin: 0;
-    bottom: 1rem;
+    bottom: 0;
     justify-content: center;
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
   }
 
   .stat-item {
@@ -1952,6 +1952,7 @@ ul {
     width: calc(100% - 1.5rem);
     left: 0.75rem;
     right: 0.75rem;
+    border-radius: 12px 12px 0 0;
   }
 
   .stat-number {
