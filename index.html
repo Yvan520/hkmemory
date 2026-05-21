@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-HK" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Mosaic · 香港記憶</title>
+  <meta name="description" content="每件產品背後，都有一個消失中的香港。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --neon-pink: #ff006e;
+      --neon-cyan: #00d9ff;
+      --neon-yellow: #ffbe0b;
+      --gradient-main: linear-gradient(135deg, #ff006e, #ff006e);
+      --gradient-cyan: linear-gradient(135deg, #00d9ff, #06ffa5);
+      --font-serif: 'Noto Serif SC', serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg-dark: #0a0a0f;
+      --bg-darker: #08080c;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --text-primary: #f0f0f0;
+      --text-secondary: rgba(255, 255, 255, 0.65);
+      --text-muted: rgba(255, 255, 255, 0.35);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      background: none;
+      color: inherit;
+    }
+
+    input {
+      font-family: inherit;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    /* Particles Canvas */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Cursor Glow */
+    .cursor-glow {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 217, 255, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s;
+    }
+
+    /* Light Mode */
+    .light-mode {
+      --bg-dark: #f5f5f7;
+      --bg-darker: #eeeef0;
+      --bg-card: rgba(0, 0, 0, 0.03);
+      --text-primary: #1d1d1f;
+      --text-secondary: rgba(0, 0, 0, 0.55);
+      --text-muted: rgba(0, 0, 0, 0.3);
+    }
+
+    .light-mode .story-card,
+    .light-mode .designer-card,
+    .light-mode .newsletter-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(15px);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .light-mode .designer-photo::after {
+      background: linear-gradient(to top, rgba(245, 245, 247, 0.95) 0%, transparent 100%);
+    }
+
+    .light-mode .footer {
+      background: var(--bg-darker);
+    }
+
+    .light-mode .product-story,
+    .light-mode .funding-bar {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .light-mode .progress-track {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .light-mode .newsletter-form input {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: var(--text-primary);
+    }
+
+    .light-mode .newsletter-form input:focus {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    /* ================================
+       Navbar
+    ================================ */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.4s var(--ease-out);
+    }
+
+    .navbar.scrolled {
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.875rem 2rem;
+    }
+
+    .light-mode .navbar.scrolled {
+      background: rgba(245, 245, 247, 0.85);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .nav-brand .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--gradient-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+    }
+
+    .nav-link {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--text-primary);
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--gradient-main);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s var(--ease-out);
+    }
+
+    .nav-link:hover::after,
+    .nav-link.active::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-actions button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .nav-actions button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.05);
+    }
+
+    .lang-btn {
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    .lang-btn.active {
+      color: var(--neon-cyan);
+      background: rgba(0, 217, 255, 0.1);
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      z-index: 1001;
+      padding: 4px;
+    }
+
+    .hamburger span {
+      width: 24px;
+      height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+      transition: all 0.3s var(--ease-out);
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    /* ================================
+       Hero Section
+    ================================ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 8rem 2rem 6rem;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .hero-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.3;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to bottom,
+        rgba(10, 10, 15, 0.2) 0%,
+        rgba(10, 10, 15, 0.8) 50%,
+        rgba(10, 10, 15, 1) 100%
+      );
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      background: rgba(255, 0, 110, 0.15);
+      border: 1px solid rgba(255, 0, 110, 0.3);
+      border-radius: 50px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--neon-pink);
+      margin-bottom: 2rem;
+      animation: fadeInDown 0.6s var(--ease-out);
+    }
+
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.75rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      max-width: 900px;
+      animation: fadeInUp 0.6s var(--ease-out) 0.1s backwards;
+    }
+
+    .hero-title .highlight {
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-title .highlight-cyan {
+      background: var(--gradient-cyan);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .typing-wrap {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 2.5rem;
+      min-height: 2rem;
+      animation: fadeInUp 0.6s var(--ease-out) 0.2s backwards;
+    }
+
+    #typing-text::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+      color: var(--neon-cyan);
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      animation: fadeInUp 0.6s var(--ease-out) 0.3s backwards;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.125rem 2.25rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: all 0.3s var(--ease-out);
+    }
+
+    .btn-primary {
+      background: var(--gradient-main);
+      color: white;
+      box-shadow: 0 4px 20px rgba(255, 0, 110, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 35px rgba(255, 0, 110, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-3px);
+    }
+
+    .btn-cyan {
+      background: var(--gradient-cyan);
+      color: #0a0a0f;
+      box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+    }
+
+    .btn-cyan:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 35px rgba(0, 217, 255, 0.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .btn-outline:hover {
+      background: rgba(0, 217, 255, 0.1);
+      transform: translateY(-3px);
+    }
+
+    /* Stats Float */
+    .stats-float {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2rem;
+      animation: fadeInUp 0.6s var(--ease-out) 0.4s backwards;
+    }
+
+    .stat-card {
+      padding: 1.25rem 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      text-align: center;
+      min-width: 150px;
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 900;
+      background: var(--gradient-cyan);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* Page Loaded State */
+    body.loaded {
+      opacity: 1;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Particles Canvas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Cursor Glow -->
+  <div class="cursor-glow"></div>
+
+  <!-- ================================
+       Navbar
+  ================================ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <div class="brand-icon">🧩</div>
+      <span>Memory Mosaic</span>
+    </div>
+
+    <div class="nav-menu" id="nav-menu">
+      <a href="#categories" class="nav-link">分類</a>
+      <a href="#featured" class="nav-link">本月主打</a>
+      <a href="#stories" class="nav-link">故事</a>
+      <a href="#creators" class="nav-link">設計師</a>
+      <a href="#newsletter" class="nav-link">訂閱</a>
+
+      <div class="nav-actions">
+        <button class="lang-btn active" data-lang="zh">繁</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button id="theme-toggle">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="hamburger" id="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <!-- ================================
+       Hero
+  ================================ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80" alt="" class="hero-image">
+      <div class="hero-overlay"></div>
+    </div>
+
+    <div class="hero-badge">
+      <span>✦</span>
+      <span>香港記憶 · 旗艦版 V4</span>
+    </div>
+
+    <h1 class="hero-title">
+      每件產品背後<br>
+      <span class="highlight">都有一個</span>
+      <span class="highlight-cyan">消失中的香港</span>
+    </h1>
+
+    <div class="typing-wrap">
+      <span id="typing-text"></span>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#categories" class="btn btn-primary">
+        <span>探索藏品</span>
+        <span>→</span>
+      </a>
+      <a href="#stories" class="btn btn-secondary">
+        <span>聽故仔</span>
+        <span>↗</span>
+      </a>
+    </div>
+
+    <div class="stats-float">
+      <div class="stat-card">
+        <div class="stat-num">128+</div>
+        <div class="stat-label">藏品</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3,600+</div>
+        <div class="stat-label">支持者</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">98%</div>
+        <div class="stat-label">好評</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================
+       Categories
+  ================================ -->
+  <section class="categories" id="categories">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <span class="tag-dot"></span>
+          <span>分類探索</span>
+        </div>
+        <h2 class="section-title">
+          每一件，都係<span class="text-glow" data-text="一段香港故事">一段香港故事</span>
+        </h2>
+        <p class="section-desc">
+          呢啲嘢，唔係為咗賣，係為咗記住。
+        </p>
+      </div>
+
+      <div class="category-grid">
+        <div class="cat-card">
+          <div class="card-bg">
+            <img src="https://images.unsplash.com/photo-1557223562-6c77ef16210f?w=600&q=80" alt="">
+          </div>
+          <div class="card-overlay"></div>
+          <div class="card-shine"></div>
+          <div class="card-content">
+            <div class="card-emoji">🍜</div>
+            <h3 class="card-title">街头美食</h3>
+            <p class="card-text">魚蛋、燒賣、鸡蛋仔⋯⋯ 逐漸消失嘅街頭味道</p>
+            <div class="card-meta">
+              <span class="meta-badge pulse">24 件藏品</span>
+              <span class="meta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cat-card">
+          <div class="card-bg">
+            <img src="https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=600&q=80" alt="">
+          </div>
+          <div class="card-overlay"></div>
+          <div class="card-shine"></div>
+          <div class="card-content">
+            <div class="card-emoji">🏮</div>
+            <h3 class="card-title">霓虹燈牌</h3>
+            <p class="card-text">拆緊嘅霓虹燈，係香港最燦爛嘅夜景記憶</p>
+            <div class="card-meta">
+              <span class="meta-badge pulse">18 件藏品</span>
+              <span class="meta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cat-card">
+          <div class="card-bg">
+            <img src="https://images.unsplash.com/photo-1590012314550-4e4e66c238a2?w=600&q=80" alt="">
+          </div>
+          <div class="card-overlay"></div>
+          <div class="card-shine"></div>
+          <div class="card-content">
+            <div class="card-emoji">📻</div>
+            <h3 class="card-title">老字號</h3>
+            <p class="card-text">幾十年嘅老舖，見證香港變遷</p>
+            <div class="card-meta">
+              <span class="meta-badge pulse">32 件藏品</span>
+              <span class="meta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cat-card">
+          <div class="card-bg">
+            <img src="https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?w=600&q=80" alt="">
+          </div>
+          <div class="card-overlay"></div>
+          <div class="card-shine"></div>
+          <div class="card-content">
+            <div class="card-emoji">🚃</div>
+            <h3 class="card-title">叮叮車</h3>
+            <p class="card-text">電車路上嘅「叮叮」聲，係香港嘅節奏</p>
+            <div class="card-meta">
+              <span class="meta-badge pulse">15 件藏品</span>
+              <span class="meta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cat-card">
+          <div class="card-bg">
+            <img src="https://images.unsplash.com/photo-1569533851327-35b0ae76f60c?w=600&q=80" alt="">
+          </div>
+          <div class="card-overlay"></div>
+          <div class="card-shine"></div>
+          <div class="card-content">
+            <div class="card-emoji">🎭</div>
+            <h3 class="card-title">粵語文化</h3>
+            <p class="card-text">粵語、粵劇、港產片——我哋嘅語言同故事</p>
+            <div class="card-meta">
+              <span class="meta-badge pulse">20 件藏品</span>
+              <span class="meta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cat-card">
+          <div class="card-bg">
+            <img src="https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=600&q=80" alt="">
+          </div>
+          <div class="card-overlay"></div>
+          <div class="card-shine"></div>
+          <div class="card-content">
+            <div class="card-emoji">🌆</div>
+            <h3 class="card-title">舊區風貌</h3>
+            <p class="card-text">九龍城寨、唐樓、徙置區——消失中的社區</p>
+            <div class="card-meta">
+              <span class="meta-badge pulse">27 件藏品</span>
+              <span class="meta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================
+       Featured Product
+  ================================ -->
+  <section class="featured" id="featured">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <span class="tag-dot fire"></span>
+          <span>本月主打</span>
+        </div>
+        <h2 class="section-title">
+          霓虹·<span class="text-glow" data-text="最後的招牌">最後的招牌</span>
+        </h2>
+        <p class="section-desc">
+          香港霓虹燈嘅最後一瞥——限量手工鑄造複製品
+        </p>
+      </div>
+
+      <div class="featured-product">
+        <div class="product-visual">
+          <div class="product-frame">
+            <img src="https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80" alt="霓虹燈牌" class="product-img">
+          </div>
+
+          <div class="float-badge" style="--x: -5%; --y: 8%;">
+            <i class="fas fa-fire"></i>
+            <span>限量 500 件</span>
+          </div>
+          <div class="float-badge" style="--x: 75%; --y: 5%;">
+            <i class="fas fa-star"></i>
+            <span>手工製作</span>
+          </div>
+          <div class="float-badge" style="--x: 80%; --y: 55%;">
+            <i class="fas fa-heart"></i>
+            <span>98% 好評</span>
+          </div>
+        </div>
+
+        <div class="product-info">
+          <div class="product-tags">
+            <span class="tag">🔥 限量</span>
+            <span class="tag">✨ 手工</span>
+            <span class="tag">🇭🇰 香港製造</span>
+          </div>
+
+          <h3 class="product-name">霓虹·最後的招牌</h3>
+
+          <div class="product-story">
+            <p class="story-quote">
+              「呢個霓虹招牌，係我阿爺嗰年代整嘅。以前成條街都係霓虹燈，夜晚好似銀河噉。而家拆剩呢一塊了⋯⋯」
+            </p>
+            <p class="story-end">—— 香港霓虹燈博物館 · 陳師傅</p>
+          </div>
+
+          <ul class="product-features">
+            <li><i class="fas fa-check-circle"></i> 手工吹製玻璃霓虹管</li>
+            <li><i class="fas fa-check-circle"></i> 還原 1960 年代原有設計</li>
+            <li><i class="fas fa-check-circle"></i> 每件附獨立編號 + 真品證書</li>
+            <li><i class="fas fa-check-circle"></i> 部分收益捐贈霓虹保育基金</li>
+          </ul>
+
+          <div class="funding-bar">
+            <div class="funding-info">
+              <span class="funding-label">眾籌進度</span>
+              <span class="funding-percent">186%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="--progress: 100%;">
+                <div class="progress-glow"></div>
+              </div>
+            </div>
+            <div class="funding-stats">
+              <span>已籌: <strong>HK$372,000</strong></span>
+              <span>目標: <strong>HK$200,000</strong></span>
+              <span>剩餘: <strong>12 日</strong></span>
+            </div>
+          </div>
+
+          <div class="product-action">
+            <div class="price-box">
+              <div class="price-tag">限量預購價</div>
+              <div class="price-amount">
+                <span class="currency">HK$</span>
+                <span class="price">1,280</span>
+              </div>
+              <div class="price-original">原價 HK$1,880</div>
+            </div>
+            <a href="#" class="btn btn-cyan btn-buy">
+              <span>立即預購</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================
+       Stories
+  ================================ -->
+  <section class="stories" id="stories">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <span class="tag-dot"></span>
+          <span>香港故事</span>
+        </div>
+        <h2 class="section-title">
+          你嘅<span class="text-glow" data-text="香港記憶">香港記憶</span>
+        </h2>
+        <p class="section-desc">每個人都有一段屬於自己嘅香港故事</p>
+      </div>
+
+      <div class="stories-grid">
+        <div class="story-card">
+          <div class="story-header">
+            <div class="story-avatar">W</div>
+            <div class="story-author">
+              <h4>Wong Sir</h4>
+              <p><i class="fas fa-map-pin"></i> 深水埗 · 60年</p>
+            </div>
+            <span class="story-tag">街坊</span>
+          </div>
+          <p class="story-body">
+            「細個嗰陣，阿媽成日帶我去深水埗黃金商場買遊戲帶。而家嗰啲舖頭一間間執咗，連商場都翻新到唔認得。有時行過，會聞到一陣好舊嘅電子味，就係我細個嘅味道。」
+          </p>
+          <div class="story-footer">
+            <span class="story-time"><i class="far fa-clock"></i> 3 日前</span>
+            <button class="story-like">
+              <i class="far fa-heart"></i>
+              <span>28</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="story-card">
+          <div class="story-header">
+            <div class="story-avatar">C</div>
+            <div class="story-author">
+              <h4>Camille</h4>
+              <p><i class="fas fa-map-pin"></i> 灣仔 · 35年</p>
+            </div>
+            <span class="story-tag pink">設計師</span>
+          </div>
+          <p class="story-body">
+            「我細個住喺灣仔嘅唐樓，樓下係一間鐵閘舖。老闆成日坐喺門口飲茶，見到我就會叫我『妹丁，放學啦？』。前幾年佢退休啦，鐵閘舖變咗做咖啡店。我仲留低咗一塊佢打嘅鐵閘花紋拓印。」
+          </p>
+          <div class="story-footer">
+            <span class="story-time"><i class="far fa-clock"></i> 1 週前</span>
+            <button class="story-like">
+              <i class="far fa-heart"></i>
+              <span>42</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="story-card">
+          <div class="story-header">
+            <div class="story-avatar">K</div>
+            <div class="story-author">
+              <h4>阿強</h4>
+              <p><i class="fas fa-map-pin"></i> 旺角 · 28年</p>
+            </div>
+            <span class="story-tag orange">攝影師</span>
+          </div>
+          <p class="story-body">
+            「我由2018年開始影香港嘅霓虹燈牌，每個星期都去唔同區影。五年嚟，我影過嘅牌子有七成已經拆咗。最記得佐敦嗰塊『蛇王彪』，影完之後三日就拆咗。我好似係最後一個影低佢嘅人。」
+          </p>
+          <div class="story-footer">
+            <span class="story-time"><i class="far fa-clock"></i> 2 週前</span>
+            <button class="story-like">
+              <i class="far fa-heart"></i>
+              <span>56</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-cta">
+        <a href="#" class="btn btn-secondary">
+          <span>分享你嘅故事</span>
+          <span>→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================
+       Creators
+  ================================ -->
+  <section class="creators" id="creators">
+    <div class="container">
+      <div class="creators-wrapper">
+        <div class="creators-text">
+          <div class="section-header" style="text-align: left;">
+            <div class="section-tag">
+              <span class="tag-dot fire"></span>
+              <span>設計師合作</span>
+            </div>
+            <h2 class="section-title" style="font-size: clamp(2rem, 4vw, 3rem);">
+              與<span class="text-glow" data-text="香港設計師">香港設計師</span>共創
+            </h2>
+          </div>
+
+          <p class="creators-desc">
+            我哋邀請本地設計師同藝術家，將香港記憶轉化為實體產品。每個作品背後都有一個故事，每條線條都係對呢座城市嘅情感。
+          </p>
+
+          <div class="creators-steps">
+            <div class="step-item">
+              <div class="step-num">01</div>
+              <div class="step-content">
+                <h4>分享你嘅香港記憶</h4>
+                <p>提交一段你對香港某個事物嘅回憶，可以係文字、相片或者錄音。</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">02</div>
+              <div class="step-content">
+                <h4>設計師重新演繹</h4>
+                <p>我哋嘅合作設計師會將你嘅記憶轉化為一件產品設計。</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">03</div>
+              <div class="step-content">
+                <h4>限量生產·永久保存</h4>
+                <p>每件產品限量製作，部分收益用於香港文化保育。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="creators-cta">
+            <a href="#" class="btn btn-primary">
+              <span>成為設計師</span>
+              <span>→</span>
+            </a>
+            <a href="#" class="btn btn-outline">
+              <span>了解更多</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="creators-visual">
+          <div class="designer-card">
+            <div class="designer-badge">✦ 合作設計師</div>
+            <div class="designer-photo">
+              <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&q=80" alt="設計師">
+            </div>
+            <div class="designer-info">
+              <h3>Mavis Chan</h3>
+              <div class="designer-role">
+                <i class="fas fa-pen-fancy"></i>
+                <span>產品設計師 · 香港理工大學</span>
+              </div>
+              <p class="designer-quote">
+                「每一個設計都係對我哋城市嘅一封情書。我希望透過作品，留住香港最美好嘅一面。」
+              </p>
+              <div class="designer-stats">
+                <div class="stat-item">
+                  <strong>24</strong>
+                  <span>作品</span>
+                </div>
+                <div class="stat-item">
+                  <strong>12</strong>
+                  <span>獎項</span>
+                </div>
+                <div class="stat-item">
+                  <strong>∞</strong>
+                  <span>熱情</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================
+       Newsletter
+  ================================ -->
+  <section class="newsletter" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card">
+        <div class="newsletter-content">
+          <div class="newsletter-icon">✉️</div>
+          <div class="newsletter-text">
+            <h3>留住香港記憶</h3>
+            <p>每月收到最新藏品故事同設計師作品資訊</p>
+          </div>
+        </div>
+
+        <form class="newsletter-form" id="newsletter-form">
+          <input type="email" placeholder="輸入你嘅電郵地址" required>
+          <button type="submit" class="btn btn-primary">
+            <span class="btn-text">訂閱</span>
+            <span class="btn-icon">→</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================
+       Footer
+  ================================ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">
+            <span style="font-size: 1.75rem;">🧩</span>
+            <span style="font-weight: 800; font-size: 1.375rem;">Memory Mosaic</span>
+          </div>
+          <p class="footer-desc">
+            呢啲嘢，唔係為咗賣，係為咗記住。<br>
+            一個記錄香港記憶嘅文化企劃。
+          </p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-pinterest"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>探索</h4>
+          <ul>
+            <li><a href="#">全部藏品</a></li>
+            <li><a href="#">分類</a></li>
+            <li><a href="#">本月主打</a></li>
+            <li><a href="#">限量預購</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>關於</h4>
+          <ul>
+            <li><a href="#">我哋嘅故事</a></li>
+            <li><a href="#">設計師合作</a></li>
+            <li><a href="#">保育基金</a></li>
+            <li><a href="#">常見問題</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>支援</h4>
+          <ul>
+            <li><a href="#">聯絡我哋</a></li>
+            <li><a href="#">運送資訊</a></li>
+            <li><a href="#">退換政策</a></li>
+            <li><a href="#">私隱條款</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>Made with <i class="fas fa-heart"></i> in Hong Kong</p>
+        <p class="footer-quote">「每件產品背後，都有一個消失中的香港」</p>
+        <p style="margin-top: 1rem; font-size: 0.8125rem;">&copy; 2026 Memory Mosaic · All rights reserved</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
