@@ -523,8 +523,10 @@ ul {
 .stats-bar {
   position: absolute;
   bottom: 2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   display: flex;
   align-items: center;
   gap: 2.5rem;
@@ -1784,7 +1786,8 @@ ul {
     gap: 1rem;
     width: calc(100% - 2rem);
     left: 1rem;
-    transform: none;
+    right: 1rem;
+    margin: 0;
     bottom: 1.5rem;
     justify-content: center;
     border-radius: 16px;
@@ -1948,6 +1951,7 @@ ul {
     gap: 0.5rem;
     width: calc(100% - 1.5rem);
     left: 0.75rem;
+    right: 0.75rem;
   }
 
   .stat-number {
