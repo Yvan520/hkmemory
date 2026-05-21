@@ -92,6 +92,12 @@ body {
   color: var(--text-light);
   overflow-x: hidden;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 a {
@@ -175,6 +181,7 @@ ul {
   z-index: 1000;
   padding: 1rem 0;
   transition: all 0.4s var(--ease-out);
+  will-change: transform;
 }
 
 .navbar.scrolled {
@@ -355,6 +362,7 @@ ul {
   height: 100%;
   object-fit: cover;
   opacity: 0.3;
+  will-change: transform;
 }
 
 .hero-overlay {
@@ -530,7 +538,8 @@ ul {
   gap: 2.5rem;
   padding: 1.5rem 3rem;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-light);
   border-radius: 20px;
 }
@@ -638,6 +647,8 @@ ul {
   padding: 8rem 0;
   position: relative;
   z-index: 2;
+  content-visibility: auto;
+  contain-intrinsic-size: 1200px;
 }
 
 .category-grid {
@@ -789,6 +800,8 @@ ul {
   background: linear-gradient(to bottom, var(--bg-dark) 0%, var(--bg-darker) 100%);
   position: relative;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
 }
 
 .featured::before {
@@ -1105,6 +1118,8 @@ ul {
 .stories {
   padding: 8rem 0;
   background: var(--bg-dark);
+  content-visibility: auto;
+  contain-intrinsic-size: 700px;
 }
 
 .stories-carousel {

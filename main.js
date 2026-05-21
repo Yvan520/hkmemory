@@ -8,16 +8,16 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const particles = [];
-const particleCount = 50;
+const particleCount = 30;
 
 class Particle {
   constructor() {
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
-    this.size = Math.random() * 2 + 1;
-    this.speedX = Math.random() * 0.5 - 0.25;
-    this.speedY = Math.random() * 0.5 - 0.25;
-    this.opacity = Math.random() * 0.5 + 0.2;
+    this.size = Math.random() * 1.5 + 0.5;
+    this.speedX = Math.random() * 0.3 - 0.15;
+    this.speedY = Math.random() * 0.3 - 0.15;
+    this.opacity = Math.random() * 0.4 + 0.1;
     this.color = Math.random() > 0.5 ? '#00d9ff' : '#ff006e';
   }
 
@@ -36,10 +36,6 @@ class Particle {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = this.color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
   }
 }
 
@@ -72,7 +68,7 @@ if ('ontouchstart' in window) {
 }
 
 // ================================
-// 📱 导航栏
+// 📱 导航栏（节流）
 // ================================
 const navbar = document.getElementById('navbar');
 const hamburger = document.getElementById('hamburger');
@@ -80,31 +76,38 @@ const navMenu = document.getElementById('nav-menu');
 const navLinks = document.querySelectorAll('.nav-link');
 
 let lastScroll = 0;
+let scrollTicking = false;
 
 window.addEventListener('scroll', () => {
-  const currentScroll = window.pageYOffset;
-  navbar.classList.toggle('scrolled', currentScroll > 100);
+  if (!scrollTicking) {
+    requestAnimationFrame(() => {
+      const currentScroll = window.pageYOffset;
+      navbar.classList.toggle('scrolled', currentScroll > 100);
 
-  if (currentScroll > lastScroll && currentScroll > 500) {
-    navbar.style.transform = 'translateY(-100%)';
-  } else {
-    navbar.style.transform = 'translateY(0)';
+      if (currentScroll > lastScroll && currentScroll > 500) {
+        navbar.style.transform = 'translateY(-100%)';
+      } else {
+        navbar.style.transform = 'translateY(0)';
+      }
+
+      lastScroll = currentScroll;
+
+      let current = '';
+      document.querySelectorAll('section[id]').forEach(section => {
+        const top = section.offsetTop - 100;
+        const h = section.clientHeight;
+        if (window.pageYOffset >= top && window.pageYOffset < top + h) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
+      });
+
+      scrollTicking = false;
+    });
+    scrollTicking = true;
   }
-
-  lastScroll = currentScroll;
-
-  // Active nav link
-  let current = '';
-  document.querySelectorAll('section[id]').forEach(section => {
-    const top = section.offsetTop - 100;
-    const h = section.clientHeight;
-    if (window.pageYOffset >= top && window.pageYOffset < top + h) {
-      current = section.getAttribute('id');
-    }
-  });
-  navLinks.forEach(link => {
-    link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
-  });
 });
 
 hamburger.addEventListener('click', () => {
@@ -630,40 +633,49 @@ const aosObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
 
 // ================================
-// 🎬 视差
+// 🎬 视差（节流）
 // ================================
+let ticking = false;
 window.addEventListener('scroll', () => {
-  const scrolled = window.pageYOffset;
-  const heroImage = document.querySelector('.hero-image');
-  if (heroImage) {
-    heroImage.style.transform = `translateY(${scrolled * 0.3}px) scale(1.15)`;
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const scrolled = window.pageYOffset;
+      const heroImage = document.querySelector('.hero-image');
+      if (heroImage) {
+        heroImage.style.transform = `translateY(${scrolled * 0.2}px) scale(1.1)`;
+      }
+      ticking = false;
+    });
+    ticking = true;
   }
 });
 
 // ================================
-// 🎨 3D 卡片倾斜
+// 🎨 3D 卡片倾斜（低性能模式）
 // ================================
-document.querySelectorAll('.category-card, .story-card, .creator-card').forEach(card => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const rx = ((y - cy) / cy) * 5;
-    const ry = ((x - cx) / cx) * 5;
-    card.style.transform = `perspective(1000px) rotateX(${-rx}deg) rotateY(${ry}deg) translateY(-8px)`;
+if (!('ontouchstart' in window)) {
+  document.querySelectorAll('.category-card, .story-card, .creator-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rx = ((y - cy) / cy) * 3;
+      const ry = ((x - cx) / cx) * 3;
+      card.style.transform = `perspective(1000px) rotateX(${-rx}deg) rotateY(${ry}deg) translateY(-4px)`;
 
-    const glow = card.querySelector('.card-glow');
-    if (glow) {
-      glow.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(0, 217, 255, 0.2) 0%, transparent 70%)`;
-    }
-  });
+      const glow = card.querySelector('.card-glow');
+      if (glow) {
+        glow.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(0, 217, 255, 0.15) 0%, transparent 70%)`;
+      }
+    });
 
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
   });
-});
+}
 
 // ================================
 // 🖼️ 图片懒加载
