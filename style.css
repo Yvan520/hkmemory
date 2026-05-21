@@ -397,18 +397,45 @@ ul {
 
 .hero-title {
   font-family: var(--font-serif);
-  font-size: clamp(2.5rem, 7vw, 5rem);
   font-weight: 900;
-  line-height: 1.15;
   margin-bottom: 1.5rem;
 }
 
 .title-line {
   display: block;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 1.2;
 }
 
-.title-line.highlight {
+.title-line .word {
+  display: inline-block;
+  transition: transform 0.3s var(--ease);
+}
+
+.title-line .word:hover {
+  transform: translateY(-4px);
+}
+
+.neon-comma {
+  color: var(--neon-cyan);
+  display: inline-block;
+  animation: commaPulse 2s infinite;
+}
+
+@keyframes commaPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.gradient-text {
   background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.neon-text {
+  background: var(--gradient-accent);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1811,7 +1838,7 @@ ul {
 }
 
 @media (max-width: 480px) {
-  .hero-title {
+  .title-line {
     font-size: 2rem;
   }
 
