@@ -55,11 +55,6 @@ function animateParticles() {
 
 animateParticles();
 
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
-
 // ================================
 // 🎯 鼠标光晕 (V1)
 // ================================
@@ -287,6 +282,22 @@ const nextBtn = document.getElementById('carousel-next');
 const dots = document.querySelectorAll('.dot');
 let currentSlide = 0;
 const totalSlides = dots.length;
+let autoplay;
+
+const startAutoplay = () => {
+  stopAutoplay();
+  autoplay = setInterval(() => {
+    currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+    updateCarousel();
+  }, 5000);
+};
+
+const stopAutoplay = () => {
+  if (autoplay) {
+    clearInterval(autoplay);
+    autoplay = null;
+  }
+};
 
 const updateCarousel = () => {
   const isMobile = window.innerWidth < 768;
@@ -325,24 +336,39 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) { currentSlide++; updateCarousel(); }
 });
 
-// Autoplay
-let autoplay = setInterval(() => {
-  currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
-  updateCarousel();
-}, 5000);
+// Touch swipe for mobile
+let touchStartX = 0;
+let touchEndX = 0;
 
-const carousel = document.querySelector('.stories-carousel');
-if (carousel) {
-  carousel.addEventListener('mouseenter', () => clearInterval(autoplay));
-  carousel.addEventListener('mouseleave', () => {
-    autoplay = setInterval(() => {
-      currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+track.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+track.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  const diff = touchStartX - touchEndX;
+  if (Math.abs(diff) > 50) {
+    if (diff > 0 && currentSlide < totalSlides - 1) {
+      currentSlide++;
       updateCarousel();
-    }, 5000);
-  });
+    } else if (diff < 0 && currentSlide > 0) {
+      currentSlide--;
+      updateCarousel();
+    }
+  }
+}, { passive: true });
+
+// Autoplay
+startAutoplay();
+
+const carouselEl = document.querySelector('.stories-carousel');
+if (carouselEl) {
+  carouselEl.addEventListener('mouseenter', stopAutoplay);
+  carouselEl.addEventListener('mouseleave', startAutoplay);
+  carouselEl.addEventListener('touchstart', stopAutoplay);
+  carouselEl.addEventListener('touchend', startAutoplay);
 }
 
-window.addEventListener('resize', updateCarousel);
 updateCarousel();
 
 // ================================
@@ -448,8 +474,10 @@ console.log('%cemail: hello@memorymosaic.hk', 'font-size: 12px; font-family: mon
 if ('performance' in window) {
   window.addEventListener('load', () => {
     setTimeout(() => {
-      const nav = performance.getEntriesByType('navigation')[0];
-      console.log('⚡ Page Load Time:', Math.round(nav.loadEventEnd - nav.fetchStart), 'ms');
+      const entries = performance.getEntriesByType('navigation');
+      if (entries.length) {
+        console.log('⚡ Page Load Time:', Math.round(entries[0].loadEventEnd - entries[0].fetchStart), 'ms');
+      }
     }, 0);
   });
 }
