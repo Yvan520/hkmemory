@@ -1,5 +1,5 @@
 // ================================
-// 🎨 简洁粒子系统
+// 🎨 粒子系统 (V1)
 // ================================
 const canvas = document.getElementById('particles-canvas');
 const ctx = canvas.getContext('2d');
@@ -24,7 +24,6 @@ class Particle {
   update() {
     this.x += this.speedX;
     this.y += this.speedY;
-
     if (this.x > canvas.width) this.x = 0;
     if (this.x < 0) this.x = canvas.width;
     if (this.y > canvas.height) this.y = 0;
@@ -37,7 +36,6 @@ class Particle {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.shadowBlur = 15;
     ctx.shadowColor = this.color;
     ctx.fill();
@@ -51,12 +49,7 @@ for (let i = 0; i < particleCount; i++) {
 
 function animateParticles() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  particles.forEach(particle => {
-    particle.update();
-    particle.draw();
-  });
-
+  particles.forEach(p => { p.update(); p.draw(); });
   requestAnimationFrame(animateParticles);
 }
 
@@ -68,30 +61,16 @@ window.addEventListener('resize', () => {
 });
 
 // ================================
-// 🎯 鼠标光晕
+// 🎯 鼠标光晕 (V1)
 // ================================
 const cursorGlow = document.querySelector('.cursor-glow');
-let mouseX = 0;
-let mouseY = 0;
-let glowX = 0;
-let glowY = 0;
 
 document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
+  requestAnimationFrame(() => {
+    cursorGlow.style.left = e.clientX + 'px';
+    cursorGlow.style.top = e.clientY + 'px';
+  });
 });
-
-function animateGlow() {
-  glowX += (mouseX - glowX) * 0.1;
-  glowY += (mouseY - glowY) * 0.1;
-
-  cursorGlow.style.left = glowX + 'px';
-  cursorGlow.style.top = glowY + 'px';
-
-  requestAnimationFrame(animateGlow);
-}
-
-animateGlow();
 
 if ('ontouchstart' in window) {
   cursorGlow.style.display = 'none';
@@ -109,12 +88,7 @@ let lastScroll = 0;
 
 window.addEventListener('scroll', () => {
   const currentScroll = window.pageYOffset;
-
-  if (currentScroll > 100) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
-  }
+  navbar.classList.toggle('scrolled', currentScroll > 100);
 
   if (currentScroll > lastScroll && currentScroll > 500) {
     navbar.style.transform = 'translateY(-100%)';
@@ -123,6 +97,19 @@ window.addEventListener('scroll', () => {
   }
 
   lastScroll = currentScroll;
+
+  // Active nav link
+  let current = '';
+  document.querySelectorAll('section[id]').forEach(section => {
+    const top = section.offsetTop - 100;
+    const h = section.clientHeight;
+    if (window.pageYOffset >= top && window.pageYOffset < top + h) {
+      current = section.getAttribute('id');
+    }
+  });
+  navLinks.forEach(link => {
+    link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
+  });
 });
 
 hamburger.addEventListener('click', () => {
@@ -151,19 +138,18 @@ document.addEventListener('click', (e) => {
 // 🌙 主题切换
 // ================================
 const themeToggle = document.getElementById('theme-toggle');
-const body = document.body;
 
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
-  body.classList.add('light-mode');
+  document.body.classList.add('light-mode');
   themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
 }
 
 themeToggle.addEventListener('click', () => {
-  body.classList.toggle('light-mode');
-  const theme = body.classList.contains('light-mode') ? 'light' : 'dark';
+  document.body.classList.toggle('light-mode');
+  const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
   localStorage.setItem('theme', theme);
-  themeToggle.innerHTML = body.classList.contains('light-mode')
+  themeToggle.innerHTML = document.body.classList.contains('light-mode')
     ? '<i class="fas fa-sun"></i>'
     : '<i class="fas fa-moon"></i>';
 });
@@ -177,24 +163,19 @@ langButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     langButtons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    const lang = btn.getAttribute('data-lang');
-    localStorage.setItem('language', lang);
+    localStorage.setItem('language', btn.getAttribute('data-lang'));
   });
 });
 
 const savedLang = localStorage.getItem('language');
 if (savedLang) {
   langButtons.forEach(btn => {
-    if (btn.getAttribute('data-lang') === savedLang) {
-      langButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    }
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === savedLang);
   });
 }
 
 // ================================
-// ⌨️ 打字机效果
+// ⌨️ 打字机效果 (V1)
 // ================================
 const typingText = document.getElementById('typing-text');
 const text = '每件產品背後，都有一個消失中的香港';
@@ -207,135 +188,181 @@ function typeWriter() {
     setTimeout(typeWriter, 80);
   }
 }
-
 setTimeout(typeWriter, 1500);
 
 // ================================
-// 🎯 平滑滚动
+// 🎯 平滑锚点滚动
 // ================================
 navLinks.forEach(link => {
   link.addEventListener('click', (e) => {
     const href = link.getAttribute('href');
-
     if (href.startsWith('#')) {
       e.preventDefault();
-      const targetId = href.substring(1);
-      const targetElement = document.getElementById(targetId);
-
-      if (targetElement) {
-        const offsetTop = targetElement.offsetTop - 80;
-        window.scrollTo({
-          top: offsetTop,
-          behavior: 'smooth'
-        });
+      const el = document.getElementById(href.substring(1));
+      if (el) {
+        window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
       }
     }
   });
 });
 
-const sections = document.querySelectorAll('section[id]');
-
-window.addEventListener('scroll', () => {
-  let current = '';
-
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop - 100;
-    const sectionHeight = section.clientHeight;
-
-    if (window.pageYOffset >= sectionTop && window.pageYOffset < sectionTop + sectionHeight) {
-      current = section.getAttribute('id');
-    }
-  });
-
-  navLinks.forEach(link => {
-    link.classList.remove('active');
-    if (link.getAttribute('href') === `#${current}`) {
-      link.classList.add('active');
-    }
-  });
-});
-
 // ================================
-// ❤️ 点赞功能
+// ❤️ 点赞
 // ================================
-const likeButtons = document.querySelectorAll('.story-like');
-
-likeButtons.forEach(btn => {
+document.querySelectorAll('.story-like').forEach(btn => {
   btn.addEventListener('click', () => {
     btn.classList.toggle('active');
-
     const icon = btn.querySelector('i');
-    const countSpan = btn.querySelector('span');
-    let count = parseInt(countSpan.textContent);
-
+    const span = btn.querySelector('span');
+    let count = parseInt(span.textContent);
     if (btn.classList.contains('active')) {
-      icon.classList.remove('far');
-      icon.classList.add('fas');
+      icon.classList.replace('far', 'fas');
       count++;
     } else {
-      icon.classList.remove('fas');
-      icon.classList.add('far');
+      icon.classList.replace('fas', 'far');
       count--;
     }
-
-    countSpan.textContent = count;
+    span.textContent = count;
   });
 });
 
 // ================================
-// 📮 Newsletter 表单
+// 📮 Newsletter
 // ================================
 const newsletterForm = document.getElementById('newsletter-form');
-
 if (newsletterForm) {
   newsletterForm.addEventListener('submit', (e) => {
     e.preventDefault();
-
-    const email = newsletterForm.querySelector('input[type="email"]').value;
     const btn = newsletterForm.querySelector('button');
-    const originalHTML = btn.innerHTML;
-
-    btn.innerHTML = '<span class="btn-text">已訂閱！</span><span class="btn-icon">✓</span>';
-    btn.style.pointerEvents = 'none';
-
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span>已訂閱！</span><i class="fas fa-check"></i>';
+    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
     setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.pointerEvents = '';
+      btn.innerHTML = orig;
+      btn.style.background = '';
       newsletterForm.reset();
     }, 3000);
   });
 }
 
 // ================================
-// ✨ 滚动动画
+// 🔢 计数器动画
 // ================================
-const observerOptions = {
-  threshold: 0.1,
-  rootMargin: '0px 0px -100px 0px'
+const animateCounter = (el, target) => {
+  let current = 0;
+  const step = target / 60;
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) {
+      el.textContent = target;
+      clearInterval(timer);
+    } else {
+      el.textContent = Math.floor(current);
+    }
+  }, 16);
 };
 
-const observer = new IntersectionObserver((entries) => {
+const statsBar = document.querySelector('.stats-bar');
+let countersDone = false;
+
+const statsObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
+    if (entry.isIntersecting && !countersDone) {
+      document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+        animateCounter(el, parseInt(el.getAttribute('data-count')));
+      });
+      countersDone = true;
     }
   });
-}, observerOptions);
+}, { threshold: 0.5 });
 
-document.querySelectorAll('.cat-card, .story-card').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(30px)';
-  el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-  observer.observe(el);
-});
+if (statsBar) statsObserver.observe(statsBar);
 
 // ================================
-// 🎬 视差效果
+// 🎠 故事轮播
+// ================================
+const track = document.getElementById('carousel-track');
+const prevBtn = document.getElementById('carousel-prev');
+const nextBtn = document.getElementById('carousel-next');
+const dots = document.querySelectorAll('.dot');
+let currentSlide = 0;
+const totalSlides = dots.length;
+
+const updateCarousel = () => {
+  const isMobile = window.innerWidth < 768;
+  const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+
+  if (!isMobile && !isTablet) {
+    track.style.transform = 'translateX(0)';
+    dots.forEach((d, i) => d.classList.toggle('active', i === 0));
+    return;
+  }
+
+  const offset = currentSlide * -100;
+  track.style.transform = `translateX(${offset}%)`;
+  dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+
+  if (prevBtn && nextBtn) {
+    prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
+    prevBtn.style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
+    nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.5' : '1';
+    nextBtn.style.pointerEvents = currentSlide === totalSlides - 1 ? 'none' : 'auto';
+  }
+};
+
+if (prevBtn && nextBtn) {
+  prevBtn.addEventListener('click', () => { if (currentSlide > 0) { currentSlide--; updateCarousel(); } });
+  nextBtn.addEventListener('click', () => { if (currentSlide < totalSlides - 1) { currentSlide++; updateCarousel(); } });
+}
+
+dots.forEach((dot, i) => {
+  dot.addEventListener('click', () => { currentSlide = i; updateCarousel(); });
+});
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft' && currentSlide > 0) { currentSlide--; updateCarousel(); }
+  if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) { currentSlide++; updateCarousel(); }
+});
+
+// Autoplay
+let autoplay = setInterval(() => {
+  currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+  updateCarousel();
+}, 5000);
+
+const carousel = document.querySelector('.stories-carousel');
+if (carousel) {
+  carousel.addEventListener('mouseenter', () => clearInterval(autoplay));
+  carousel.addEventListener('mouseleave', () => {
+    autoplay = setInterval(() => {
+      currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+      updateCarousel();
+    }, 5000);
+  });
+}
+
+window.addEventListener('resize', updateCarousel);
+updateCarousel();
+
+// ================================
+// ✨ Scroll Animations (AOS)
+// ================================
+const aosObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('aos-animate');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
+
+// ================================
+// 🎬 视差
 // ================================
 window.addEventListener('scroll', () => {
   const scrolled = window.pageYOffset;
-
   const heroImage = document.querySelector('.hero-image');
   if (heroImage) {
     heroImage.style.transform = `translateY(${scrolled * 0.3}px) scale(1.15)`;
@@ -345,21 +372,21 @@ window.addEventListener('scroll', () => {
 // ================================
 // 🎨 3D 卡片倾斜
 // ================================
-const cards3D = document.querySelectorAll('.product-frame, .designer-card');
-
-cards3D.forEach(card => {
+document.querySelectorAll('.category-card, .story-card, .creator-card').forEach(card => {
   card.addEventListener('mousemove', (e) => {
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rx = ((y - cy) / cy) * 5;
+    const ry = ((x - cx) / cx) * 5;
+    card.style.transform = `perspective(1000px) rotateX(${-rx}deg) rotateY(${ry}deg) translateY(-8px)`;
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const rotateX = ((y - centerY) / centerY) * 8;
-    const rotateY = ((x - centerX) / centerX) * 8;
-
-    card.style.transform = `perspective(1200px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(20px)`;
+    const glow = card.querySelector('.card-glow');
+    if (glow) {
+      glow.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(0, 217, 255, 0.2) 0%, transparent 70%)`;
+    }
   });
 
   card.addEventListener('mouseleave', () => {
@@ -368,74 +395,61 @@ cards3D.forEach(card => {
 });
 
 // ================================
+// 🖼️ 图片懒加载
+// ================================
+if ('IntersectionObserver' in window) {
+  const imgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src || img.src;
+        img.classList.add('loaded');
+        imgObserver.unobserve(img);
+      }
+    });
+  });
+  document.querySelectorAll('img[loading="lazy"]').forEach(img => imgObserver.observe(img));
+}
+
+// ================================
 // 🎯 性能优化
 // ================================
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.documentElement.style.scrollBehavior = 'auto';
+  document.querySelectorAll('[data-aos]').forEach(el => el.classList.add('aos-animate'));
+}
+
+const debounce = (fn, wait) => {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
 };
 
 window.addEventListener('resize', debounce(() => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  updateCarousel();
 }, 250));
-
-if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  document.documentElement.style.scrollBehavior = 'auto';
-
-  document.querySelectorAll('*').forEach(el => {
-    el.style.animation = 'none !important';
-    el.style.transition = 'none !important';
-  });
-}
 
 // ================================
 // 🎉 页面加载完成
 // ================================
 window.addEventListener('load', () => {
   document.body.classList.add('loaded');
-
-  const statNums = document.querySelectorAll('.stat-num');
-  statNums.forEach(num => {
-    if (num.textContent !== '∞') {
-      const target = parseInt(num.textContent.replace('+', '').replace('%', ''));
-      const suffix = num.textContent.includes('+') ? '+' : num.textContent.includes('%') ? '%' : '';
-      let current = 0;
-      const increment = target / 50;
-
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-          num.textContent = target + suffix;
-          clearInterval(timer);
-        } else {
-          num.textContent = Math.floor(current) + suffix;
-        }
-      }, 30);
-    }
-  });
 });
 
 // ================================
 // 🎨 控制台彩蛋
 // ================================
-console.log('%c👋 Hello Designer!', 'font-size: 28px; font-weight: bold; background: linear-gradient(135deg, #ff006e, #00d9ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;');
-console.log('%c如果你睇到呢個訊息，代表你對代碼有興趣！', 'font-size: 16px; color: #00d9ff;');
-console.log('%c我哋誠邀設計師合作 💌', 'font-size: 14px; color: #ff006e;');
+console.log('%c👋 Hello Designer!', 'font-size: 24px; font-weight: bold; color: #ff006e;');
+console.log('%c如果你睇到呢個訊息，代表你對代碼有興趣！', 'font-size: 14px; color: #00d9ff;');
+console.log('%c我哋誠邀設計師合作 💌', 'font-size: 12px; color: #a0a0b0;');
 console.log('%cemail: hello@memorymosaic.hk', 'font-size: 12px; font-family: monospace; color: #ffbe0b;');
 
 if ('performance' in window) {
   window.addEventListener('load', () => {
     setTimeout(() => {
-      const perfData = performance.getEntriesByType('navigation')[0];
-      console.log('%c⚡ Page Load Time:', 'color: #06ffa5; font-weight: bold;', Math.round(perfData.loadEventEnd - perfData.fetchStart), 'ms');
+      const nav = performance.getEntriesByType('navigation')[0];
+      console.log('⚡ Page Load Time:', Math.round(nav.loadEventEnd - nav.fetchStart), 'ms');
     }, 0);
   });
 }
