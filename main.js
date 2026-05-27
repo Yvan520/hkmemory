@@ -493,7 +493,8 @@ if (newsletterForm) {
 // ================================
 const animateCounter = (el, target) => {
   let current = 0;
-  const step = target / 60;
+  el.textContent = '0';
+  const step = Math.ceil(target / 60);
   const timer = setInterval(() => {
     current += step;
     if (current >= target) {
